@@ -1,6 +1,6 @@
-const { app, BrowserWindow, BrowserView, ipcMain, session, Menu, nativeTheme } = require('electron');
-const { autoUpdater } = require('electron-updater');
+const { app, BrowserWindow, BrowserView, ipcMain, session, Menu, nativeTheme, dialog, shell } = require('electron');
 const path = require('path');
+const https = require('https');
 
 app.disableHardwareAcceleration();
 
@@ -23,10 +23,16 @@ let activeTabId = null;
 let nextTabId = 1;
 let proxyManager = null;
 let searchEngine = 'google';
+let hasPromptedForUpdateThisSession = false;
+
+// ===== GITHUB RELEASE CHECKER =====
+const GITHUB_OWNER = 'VeloxBrowser';
+const GITHUB_REPO = 'Velox';
 
 const TOOLBAR_HEIGHT = 94;
 const STATUSBAR_HEIGHT = 32;
 const VIEW_BG = '#08080c';
+const UPDATE_CHECK_INTERVAL_MS = 1000 * 60 * 60 * 6; // 6 saat
 
 const PATHS = {
   mainPreload: path.join(__dirname, '../preload/preload.js'),
@@ -36,6 +42,186 @@ const PATHS = {
   newTabHtml: path.join(__dirname, '../renderer/newtab.html'),
   icon: path.join(__dirname, '../../assets/icon.png'),
 };
+
+function parseVersion(version) {
+  const parts = String(version || '').match(/\d+/g);
+  return (parts || []).map(part => parseInt(part, 10) || 0);
+}
+
+function isRemoteVersionNewer(currentVersion, remoteVersion) {
+  const current = parseVersion(currentVersion);
+  const remote = parseVersion(remoteVersion);
+  const len = Math.max(current.length, remote.length);
+
+  for (let i = 0; i < len; i++) {
+    const a = current[i] || 0;
+    const b = remote[i] || 0;
+    if (b > a) return true;
+    if (b < a) return false;
+  }
+
+  return false;
+}
+
+function fetchLatestGitHubRelease() {
+  return new Promise((resolve, reject) => {
+    const options = {
+      hostname: 'api.github.com',
+      path: `/repos/${GITHUB_OWNER}/${GITHUB_REPO}/releases/latest`,
+      method: 'GET',
+      headers: {
+        'User-Agent': 'Velox-Update-Checker',
+        'Accept': 'application/vnd.github+json',
+      },
+    };
+
+    const req = https.request(options, (res) => {
+      let raw = '';
+
+      res.on('data', chunk => {
+        raw += chunk;
+      });
+
+      res.on('end', () => {
+        try {
+          if (res.statusCode !== 200) {
+            return reject(new Error(`GitHub API failed with status ${res.statusCode}`));
+          }
+
+          const json = JSON.parse(raw);
+
+          const version = String(json.tag_name || '').trim();
+          const htmlUrl = String(json.html_url || '').trim();
+          const name = String(json.name || json.tag_name || '').trim();
+
+          let installerUrl = '';
+          if (Array.isArray(json.assets)) {
+            const preferredAsset =
+              json.assets.find(asset => /\.exe$/i.test(asset.name || '')) ||
+              json.assets.find(asset => /\.msi$/i.test(asset.name || '')) ||
+              json.assets[0];
+
+            installerUrl = String(preferredAsset?.browser_download_url || '').trim();
+          }
+
+          resolve({
+            version,
+            htmlUrl,
+            installerUrl,
+            name,
+          });
+        } catch (err) {
+          reject(err);
+        }
+      });
+    });
+
+    req.on('error', reject);
+    req.end();
+  });
+}
+
+async function checkForGitHubUpdate({ silent = false } = {}) {
+  try {
+    const currentVersion = app.getVersion();
+    const latest = await fetchLatestGitHubRelease();
+
+    if (!latest.version) {
+      if (!silent && mainWindow && !mainWindow.isDestroyed()) {
+        await dialog.showMessageBox(mainWindow, {
+          type: 'info',
+          title: 'Update Check',
+          message: 'No valid version tag was found in the latest GitHub release.',
+        });
+      }
+      return { ok: false, reason: 'no-version' };
+    }
+
+    const hasUpdate = isRemoteVersionNewer(currentVersion, latest.version);
+
+    if (!hasUpdate) {
+      if (!silent && mainWindow && !mainWindow.isDestroyed()) {
+        await dialog.showMessageBox(mainWindow, {
+          type: 'info',
+          title: 'Velox',
+          message: 'You are already using the latest version.',
+          detail: `Current version: ${currentVersion}`,
+        });
+      }
+
+      return {
+        ok: true,
+        updateAvailable: false,
+        currentVersion,
+        latestVersion: latest.version,
+      };
+    }
+
+    if (silent && hasPromptedForUpdateThisSession) {
+      return {
+        ok: true,
+        updateAvailable: true,
+        currentVersion,
+        latestVersion: latest.version,
+      };
+    }
+
+    hasPromptedForUpdateThisSession = true;
+
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      const result = await dialog.showMessageBox(mainWindow, {
+        type: 'info',
+        buttons: ['İndir', 'Sonra'],
+        defaultId: 0,
+        cancelId: 1,
+        title: 'Yeni sürüm bulundu',
+        message: `Yeni sürüm mevcut: ${latest.version}`,
+        detail: `Şu anki sürüm: ${currentVersion}\nYeni sürümü açmak için "İndir"e bas.`,
+      });
+
+      if (result.response === 0) {
+        const targetUrl = latest.installerUrl || latest.htmlUrl;
+        if (targetUrl) {
+          await shell.openExternal(targetUrl);
+        }
+      }
+    }
+
+    return {
+      ok: true,
+      updateAvailable: true,
+      currentVersion,
+      latestVersion: latest.version,
+    };
+  } catch (err) {
+    console.error('[Update Check Error]', err);
+
+    if (!silent && mainWindow && !mainWindow.isDestroyed()) {
+      await dialog.showMessageBox(mainWindow, {
+        type: 'error',
+        title: 'Update Check Failed',
+        message: 'Could not check for updates.',
+        detail: err.message || String(err),
+      });
+    }
+
+    return {
+      ok: false,
+      reason: 'error',
+      error: err.message || String(err),
+    };
+  }
+}
+
+function scheduleUpdateChecks() {
+  setTimeout(() => {
+    checkForGitHubUpdate({ silent: true }).catch(() => {});
+  }, 15000);
+
+  setInterval(() => {
+    checkForGitHubUpdate({ silent: true }).catch(() => {});
+  }, UPDATE_CHECK_INTERVAL_MS);
+}
 
 app.whenReady().then(async () => {
   try {
@@ -65,11 +251,15 @@ app.whenReady().then(async () => {
 
     contents.on('did-create-window', (childWindow, details) => {
       try {
-        if (childWindow && !childWindow.isDestroyed()) childWindow.hide();
+        if (childWindow && !childWindow.isDestroyed()) {
+          childWindow.hide();
+        }
       } catch (_) {}
 
       try {
-        if (childWindow && !childWindow.isDestroyed()) childWindow.destroy();
+        if (childWindow && !childWindow.isDestroyed()) {
+          childWindow.destroy();
+        }
       } catch (_) {}
 
       const targetUrl = String(details?.url || '').trim();
@@ -87,12 +277,6 @@ app.whenReady().then(async () => {
 
   createMainWindow();
 
-  try {
-    autoUpdater.checkForUpdatesAndNotify();
-  } catch (err) {
-    console.error('AutoUpdater Error:', err);
-  }
-
   initAdBlocker(session.defaultSession).catch((err) => {
     console.error('AdBlock Init Error:', err);
   });
@@ -102,6 +286,9 @@ app.whenReady().then(async () => {
       createTab('velox://newtab');
     }
   });
+
+  checkForGitHubUpdate({ silent: true }).catch(() => {});
+  scheduleUpdateChecks();
 });
 
 app.on('window-all-closed', () => {
@@ -617,4 +804,8 @@ ipcMain.handle('set-search-engine', (_, engine) => {
 
 ipcMain.handle('get-search-engine', () => {
   return searchEngine;
+});
+
+ipcMain.handle('check-for-updates', async () => {
+  return checkForGitHubUpdate({ silent: false });
 });

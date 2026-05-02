@@ -1,6 +1,6 @@
 {
   "name": "velox-browser",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Blazing fast, privacy-first browser with built-in ad blocking and proxy protection",
   "repository": {
     "type": "git",
