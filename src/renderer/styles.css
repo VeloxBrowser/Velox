@@ -1,0 +1,230 @@
+/* ========================================
+   VELOX BROWSER - Midnight Cyber Theme (Original)
+   ======================================== */
+
+:root {
+  --bg-deep: #08080c;
+  --bg-base: #0f1016;
+  --bg-surface: #16171f;
+  --bg-elevated: #1e1f2b;
+  --bg-hover: #262837;
+  --bg-active: #32354a;
+
+  --accent-purple: #a855f7;
+  --accent-purple-dim: #9333ea;
+  --accent-cyan: #06b6d4;
+  --accent-cyan-dim: #0891b2;
+  --accent-green: #10b981;
+  --accent-red: #ef4444;
+  --accent-orange: #f59e0b;
+  --accent-gradient: linear-gradient(135deg, #a855f7, #06b6d4);
+
+  --text-primary: #e8eaf0;
+  --text-secondary: #8b8da3;
+  --text-muted: #555770;
+
+  --glass-bg: rgba(255, 255, 255, 0.03);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-hover: rgba(255, 255, 255, 0.06);
+
+  --titlebar-h: 42px;
+  --navbar-h: 52px;
+  --statusbar-h: 32px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.25s ease;
+  --transition-slow: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg-deep);
+  color: var(--text-primary);
+  overflow: hidden;
+  user-select: none;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+button { cursor: pointer; border: none; background: none; color: inherit; outline: none; transition: all 0.2s; }
+button:disabled { opacity: 0.3; cursor: default; }
+input { outline: none; border: none; background: none; color: inherit; }
+
+/* ===================== TITLE BAR ===================== */
+#titlebar {
+  height: var(--titlebar-h);
+  background: var(--bg-base);
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--glass-border);
+  position: relative;
+  z-index: 1000;
+  -webkit-app-region: drag;
+  contain: layout style;
+}
+
+#titlebar-drag { flex: 1; display: flex; align-items: center; height: 100%; padding-left: 14px; gap: 10px; }
+#brand { display: flex; align-items: center; gap: 8px; -webkit-app-region: no-drag; }
+#brand-name { font-size: 14px; font-weight: 800; background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: 0.5px; }
+
+#tabs-container { flex: 1; display: flex; align-items: center; height: 100%; margin-left: 15px; -webkit-app-region: drag; }
+#tabs-list { display: flex; gap: 5px; }
+.tab {
+  height: 32px; min-width: 120px; padding: 0 14px; background: rgba(255,255,255,0.02); border-radius: 8px; 
+  display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--text-secondary); border: 1px solid transparent;
+  -webkit-app-region: no-drag;
+}
+.tab.active { background: var(--bg-surface); color: var(--text-primary); border-color: var(--glass-border); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+.tab-close {
+  width: 26px; height: 26px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 6px;
+  font-size: 18px;
+  margin-left: 4px;
+  transition: all 0.2s;
+  color: var(--text-muted);
+}
+.tab-close:hover { background: rgba(255,255,255,0.1); color: var(--accent-red); }
+
+#new-tab-btn {
+  width: 26px; height: 26px;
+  min-width: 26px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 6px;
+  background: rgba(255,255,255,0.05);
+  color: var(--text-secondary);
+  font-size: 18px;
+  margin-left: 8px;
+  -webkit-app-region: no-drag;
+}
+#new-tab-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+
+#window-controls { display: flex; height: 100%; -webkit-app-region: no-drag; }
+.win-btn { width: 48px; height: 100%; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 16px; }
+.win-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+.win-close:hover { background: var(--accent-red); color: white; }
+
+/* ===================== NAVBAR ===================== */
+#navbar {
+  height: var(--navbar-h);
+  background: var(--bg-surface);
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  gap: 12px;
+  border-bottom: 1px solid var(--glass-border);
+  z-index: 900;
+}
+
+#nav-buttons { display: flex; gap: 4px; }
+.nav-btn {
+  width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
+  border-radius: 8px; color: var(--text-secondary);
+}
+.nav-btn:hover:not(:disabled) { background: var(--bg-hover); color: var(--text-primary); }
+
+#address-bar {
+  flex: 1;
+  height: 36px;
+  background: var(--bg-base);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  gap: 10px;
+}
+
+#url-input { flex: 1; font-size: 14px; color: var(--text-primary); }
+#url-input::placeholder { color: var(--text-muted); }
+
+#toolbar-actions { display: flex; gap: 6px; }
+.toolbar-btn {
+  width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;
+  border-radius: 8px; color: var(--text-secondary); position: relative; font-size: 18px; z-index: 5000; pointer-events: auto !important;
+  will-change: transform;
+}
+.toolbar-btn:hover { background: var(--bg-hover); color: var(--text-primary); transform: translateY(-1px); }
+.toolbar-btn:active { transform: scale(0.95); }
+#proxy-status-dot {
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent-red);
+  border: 1.5px solid var(--bg-surface);
+  transition: all 0.3s ease;
+  pointer-events: none;
+}
+#proxy-status-dot.dot-active {
+  background: var(--accent-green);
+  box-shadow: 0 0 10px var(--accent-green);
+}
+#proxy-status-dot.dot-connecting {
+  background: var(--accent-orange);
+  box-shadow: 0 0 10px var(--accent-orange);
+}
+
+/* ===================== STATUS BAR ===================== */
+#status-bar {
+  height: var(--statusbar-h);
+  background: var(--bg-base);
+  border-top: 1px solid var(--glass-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 18px;
+  font-size: 11px;
+  color: var(--text-muted);
+  contain: layout style;
+}
+
+/* ===================== PANELS ===================== */
+.panel {
+  position: fixed;
+  top: calc(var(--titlebar-h) + var(--navbar-h) + 10px);
+  right: 15px;
+  width: 320px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.6);
+  z-index: 2000;
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+  animation: panelSlide 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes panelSlide {
+  from { opacity: 0; transform: translateY(-15px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.panel-header { padding: 16px 18px; border-bottom: 1px solid var(--glass-border); display: flex; align-items: center; justify-content: space-between; }
+.panel-header h3 { font-size: 14px; font-weight: 700; color: var(--text-primary); }
+.panel-close { font-size: 24px; color: var(--text-muted); }
+.panel-close:hover { color: var(--accent-red); }
+
+.panel-body { padding: 18px; display: flex; flex-direction: column; gap: 15px; }
+
+.proxy-info-card { background: var(--bg-base); border-radius: var(--radius-sm); padding: 14px; border: 1px solid var(--glass-border); transition: all 0.3s; }
+.proxy-info-card.connected { border-color: rgba(16, 185, 129, 0.4); background: rgba(16, 185, 129, 0.05); }
+.proxy-info-item { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px; }
+.proxy-label { color: var(--text-muted); }
+.proxy-value { color: var(--text-primary); font-weight: 600; }
+
+.btn-accent { background: var(--accent-gradient); color: white; padding: 12px; border-radius: 8px; font-weight: 700; font-size: 13px; text-align: center; }
+.btn-danger { background: rgba(239, 68, 68, 0.2); color: var(--accent-red); padding: 12px; border-radius: 8px; font-weight: 700; font-size: 13px; text-align: center; }
+
+#proxy-indicator {
+  position: absolute; bottom: 6px; right: 6px; width: 8px; height: 8px; border-radius: 50%; background: var(--text-muted); border: 2px solid var(--bg-surface);
+}
+#proxy-indicator.indicator-on { background: var(--accent-green); box-shadow: 0 0 10px var(--accent-green); }

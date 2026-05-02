@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Velox Browser</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .panel {
+      position: fixed !important;
+      top: 100px;
+      right: 20px;
+      width: 320px;
+      z-index: 99999 !important;
+      background: #1e1f2b !important;
+      display: none;
+      flex-direction: column;
+      border: 1px solid rgba(255,255,255,0.1) !important;
+      border-radius: 12px !important;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.6) !important;
+      padding: 20px;
+    }
+  </style>
+</head>
+<body class="midnight-cyber">
+  <div id="titlebar">
+    <div id="titlebar-drag">
+      <div id="brand">
+        <img src="../../assets/icon.png" alt="Velox" width="22" height="22" style="border-radius: 5px;">
+        <span id="brand-name">Velox</span>
+      </div>
+      <div id="tabs-container">
+        <div id="tabs-list"></div>
+        <button id="new-tab-btn" class="toolbar-btn">+</button>
+      </div>
+    </div>
+    <div id="window-controls">
+      <button id="btn-minimize" class="win-btn">&minus;</button>
+      <button id="btn-maximize" class="win-btn">&#9634;</button>
+      <button id="btn-close" class="win-btn win-close">&times;</button>
+    </div>
+  </div>
+
+  <div id="navbar">
+    <div id="nav-buttons">
+      <button id="btn-back" class="nav-btn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg></button>
+      <button id="btn-forward" class="nav-btn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></button>
+      <button id="btn-reload" class="nav-btn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></button>
+    </div>
+
+    <div id="address-bar">
+      <div id="ssl-indicator">🔒</div>
+      <input type="text" id="url-input" placeholder="Search or enter URL...">
+    </div>
+
+    <div id="toolbar-actions">
+      <button id="btn-duck" class="toolbar-btn" style="font-size: 20px; z-index: 100000; position: relative;">🦆</button>
+      <button id="btn-adblock" class="toolbar-btn" style="font-size: 20px; z-index: 100000; position: relative;">🛡️</button>
+      <button id="btn-proxy" class="toolbar-btn" style="font-size: 20px; z-index: 100000; position: relative;">
+        🌐
+        <span id="proxy-status-dot"></span>
+      </button>
+    </div>
+  </div>
+
+  <div id="browser-container" style="flex:1; background: #08080c;"></div>
+
+  <div id="status-bar" style="height:32px; background:#0f1016; display:flex; align-items:center; justify-content:space-between; padding:0 18px; border-top:1px solid rgba(255,255,255,0.1);">
+    <div style="color:#10b981; font-size:11px;">🛡️ Protection Active</div>
+    <div style="color: #ffd700; font-weight: 800; letter-spacing: 4px; text-shadow: 0 0 15px rgba(255, 215, 0, 0.6);">Terenax</div>
+    <div style="color:#555770; font-size:11px;"><span id="status-proxy-text">Direct Connection</span></div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
